@@ -1,0 +1,20 @@
+# Local audio (kept on this computer, intentionally not uploaded)
+*.mp3
+*.wav
+*.m4a
+*.aac
+*.flac
+*.zip
+
+# Local/editor/system files
+.DS_Store
+node_modules/
+tmp/
+*.log
+
+# Nested Git metadata; the parent repository tracks project files
+# Separate local 2GB project with its own Git history
+ai-teaching-material-system-main/
+
+# GitHub rejects files larger than 100 MB
+KỸ NĂNG NÓI 1-GIÁO TRÌNH GIẢNG DẠY.pdf
