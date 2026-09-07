@@ -2,6 +2,19 @@
 
 這個專案保存 KN2／KN4 課程內容、教師審核稿與 HTML 投影片製作規格。此處 PPT 指 HTML 課堂投影片。
 
+## 直接編輯與放映
+
+下載本倉庫 ZIP 並解壓縮，使用桌面 Chrome 或 Edge 開啟根目錄 **index.html**。不需要安裝 Node、Python 或原本的產生器；完整操作見 [編輯器使用說明](editor/使用說明.md)。
+
+1. 按「新課程」，或「匯入製作稿」選擇本課 HTML_PPT製作稿.md。
+2. 拖曳文字、圖片與卡片；拖右下角調整大小，雙擊文字直接修改。右側可以改字級、位置、色彩、層次與鎖定位置。
+3. 按「下載課程檔」保存可繼續編輯的 .slides.json；圖片一併保存在檔案內。
+4. 按「開始放映」試教，測試翻牌與答案；「匯出簡報」產生可離線播放的單一 HTML。「列印 / PDF」保存靜態正面頁面。
+
+瀏覽器會自動保存最近的課程，但清除瀏覽器資料、更換電腦或移動編輯器路徑可能使資料無法找到。**每次完成修改都下載課程檔備份。**
+
+製作稿匯入會保留每一列及完整原文備註，並擷取反引號內的文字作為草稿。它不重建舊版面、圖片配置或互動；擷取的文字可能包含答案，必須先整理正反面、核對題目與拆頁再放映。這不是 PowerPoint .pptx 或任意 HTML 的匯入器。
+
 ## 製作或修改一課
 
 先讀 [製作契約](製作契約.md)，再開本課 `HTML_PPT製作稿.md`。新課另讀所屬課程的 01 架構與 02 模板；既有單頁修正只讀受影響頁與頁型。AI 助理從 [AGENTS.md](AGENTS.md) 進入，不套用參考專案的個人偏好。
@@ -19,7 +32,7 @@ python3 -m unittest discover -s scripts -p 'test_*.py'
 
 ## 本機 HTML 系統
 
-朋友原有的 `ai-teaching-material-system-main/` 是另一個本機專案，沒有放在這個 Git 倉庫。現有課程仍使用朋友本機的版本；[原始系統](https://github.com/ssyan110/ai-teaching-material-system) 只供程式參考，不能假設與本機修改版相同。
+朋友原有的 `ai-teaching-material-system-main/` 是另一個本機專案，沒有放在這個 Git 倉庫。既有產生器路線仍可使用朋友本機的版本；本倉庫的新編輯器不依賴它。[原始系統](https://github.com/ssyan110/ai-teaching-material-system) 只供程式參考，不能假設與本機修改版相同。
 
 第一次在新電腦生成前，確認本機系統路徑、版本、實際建置命令及一課可開啟的輸出；把非敏感資訊記在本課製作稿。尚未確認時，仍可進行內容與文件預檢，不宣稱已生成可上課投影片。不要直接用上游覆蓋朋友的產生器。
 
@@ -29,4 +42,4 @@ python3 -m unittest discover -s scripts -p 'test_*.py'
 - `ai-teaching-material-system-main/`：獨立的本地專案，保留自己的 Git 資料。
 - 超過 GitHub 單檔限制的檔案。
 
-新增工具只處理本倉庫的製作稿；HTML、素材與匯出仍在原本製作系統進行。
+新編輯器的來源、放映與匯出都在本倉庫 editor/；舊產生器輸出不會被覆寫。開發者驗證：python3 -m unittest discover -s scripts -p 'test_*.py' 與 node scripts/test_editor_model.cjs。詳見 [編輯器驗證紀錄](docs/編輯器驗證紀錄.md)。
