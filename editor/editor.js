@@ -1,7 +1,7 @@
 'use strict';
 const M=SlideModel,$=id=>document.getElementById(id);
 document.head.append(Object.assign(document.createElement('style'),{textContent:M.slideCSS}));
-let deck=M.blank(),page=0,selected=null,scale=1,undo=[],redo=[],db=null,saveQueue=Promise.resolve(),pending=0,storageFailed=false;
+let deck=M.blank(),page=0,selected=null,scale=1,undo=[],redo=[],db=null,saveQueue=Promise.resolve(),pending=0,storageFailed=false,saveGeneration=0;
 const revisions=new Map(),blocked=new Set();
 let toastTimer,replaceImage=false,drag=null;
 const slide=()=>deck.slides[page],item=()=>slide().elements.find(e=>e.id===selected);
@@ -17,8 +17,8 @@ function persist(snapshot){return new Promise((resolve,reject)=>{
  revision=current+1;store.put({revision,deck:snapshot},snapshot.id);store.put(snapshot.id,'active');};
  tx.oncomplete=()=>{revisions.set(snapshot.id,revision);resolve();};tx.onabort=()=>reject(error||tx.error||Error('保存未完成。'));tx.onerror=()=>{};
  });}
-function saveLocal(){if(JSON.stringify(deck).length>50000000){storageFailed=true;$('save-status').textContent='課程過大 · 請減少圖片';notify('課程超過 50 MB。請移除過大的圖片後保存。');return Promise.resolve();}const snapshot=M.clone(deck);pending++;$('save-status').textContent='儲存中…';
- saveQueue=saveQueue.then(()=>persist(snapshot)).then(()=>{storageFailed=false;}).catch(e=>{storageFailed=true;notify(e.message+' 可使用「下載課程檔」保留所有修改。');}).finally(()=>{pending--;$('save-status').textContent=storageFailed?'尚未保存 · 請下載備份':pending?'儲存中…':'已儲存於此瀏覽器';});return saveQueue;}
+function saveLocal(){const generation=++saveGeneration;if(JSON.stringify(deck).length>50000000){storageFailed=true;$('save-status').textContent='課程過大 · 請減少圖片';notify('課程超過 50 MB。請移除過大的圖片後保存。');return Promise.resolve();}const snapshot=M.clone(deck);pending++;$('save-status').textContent='儲存中…';
+ saveQueue=saveQueue.then(()=>persist(snapshot)).then(()=>{if(generation===saveGeneration)storageFailed=false;}).catch(e=>{storageFailed=true;notify(e.message+' 可使用「下載課程檔」保留所有修改。');}).finally(()=>{pending--;$('save-status').textContent=storageFailed?'尚未保存 · 請下載備份':pending?'儲存中…':'已儲存於此瀏覽器';});return saveQueue;}
 function record(before){if(before===JSON.stringify(deck))return;undo.push(before);while(undo.length>1&&(undo.length>30||undo.reduce((n,s)=>n+s.length,0)>20000000))undo.shift();redo=[];$('undo').disabled=!undo.length;$('redo').disabled=true;saveLocal();}
 function change(fn){const before=JSON.stringify(deck);fn();record(before);render();}
 function undoRedo(back){const src=back?undo:redo,dst=back?redo:undo;if(!src.length)return;dst.push(JSON.stringify(deck));deck=JSON.parse(src.pop());page=Math.min(page,deck.slides.length-1);selected=null;saveLocal();render();}
@@ -40,7 +40,7 @@ function renderStage(){const stage=$('stage');M.paint(slide(),stage);for(const n
  }
  requestAnimationFrame(()=>{let count=0;for(const n of stage.querySelectorAll('.element-text'))if(n.scrollHeight>n.clientHeight+2||n.scrollWidth>n.clientWidth+2)count++;$('overflow').textContent=count?'有 '+count+' 個文字框可能放不下。請放大文字框或拆頁，避免內容被裁切。':'';});}
 function inspector(){const s=slide(),e=item();$('slide-title').value=s.title;$('source').value=s.source;$('slide-bg').value=s.background;$('notes').value=s.notes;$('element-controls').hidden=!e;$('no-selection').hidden=!!e;$('selected-kind').textContent=e?({text:'文字',image:'圖片',shape:'色塊',flashcard:'翻牌',reveal:'答案'})[e.type]:'投影片';
- if(!e)return;for(const k of ['text','x','y','w','h','fontSize','align','color','background'])$(k).value=e[k];$('back-text').value=e.backText;$('bold').checked=e.bold;$('locked').checked=e.locked;$('back-label').hidden=!['flashcard','reveal'].includes(e.type);$('replace-image').hidden=e.type!=='image';for(const k of ['x','y','w','h','center-x','center-y'])$(k).disabled=e.locked;}
+ if(!e)return;$('background').parentElement.hidden=['text','image'].includes(e.type);for(const k of ['fontSize','align','color','bold'])$(k).disabled=e.type==='image';for(const k of ['text','x','y','w','h','fontSize','align','color','background'])$(k).value=e[k];$('back-text').value=e.backText;$('bold').checked=e.bold;$('locked').checked=e.locked;$('back-label').hidden=!['flashcard','reveal'].includes(e.type);$('replace-image').hidden=e.type!=='image';for(const k of ['x','y','w','h','center-x','center-y'])$(k).disabled=e.locked;}
 $('stage').addEventListener('pointerdown',ev=>{if(ev.button!==0||ev.target.isContentEditable)return;const n=ev.target.closest('.slide-element');if(!n){select(null);return;}const resize=ev.target.classList.contains('resize-handle');selected=n.dataset.id;const e=item();if(e.locked){select(e.id);$('stage').focus({preventScroll:true});return;}
  drag={id:e.id,pointer:ev.pointerId,startX:ev.clientX,startY:ev.clientY,x:e.x,y:e.y,w:e.w,h:e.h,resize,before:JSON.stringify(deck)};ev.preventDefault();markSelection();inspector();$('stage').focus({preventScroll:true});});
 $('stage').addEventListener('pointermove',ev=>{if(!drag||drag.pointer!==ev.pointerId)return;if(Math.abs(ev.clientX-drag.startX)+Math.abs(ev.clientY-drag.startY)<3)return;if(!$('stage').hasPointerCapture(ev.pointerId))$('stage').setPointerCapture(ev.pointerId);const e=item(),dx=(ev.clientX-drag.startX)/scale,dy=(ev.clientY-drag.startY)/scale,snap=v=>$('snap').checked?Math.round(v/5)*5:Math.round(v);

@@ -24,7 +24,7 @@ function validate(raw){
 function renderElement(e,interactive=false){const n=document.createElement(interactive&&['flashcard','reveal'].includes(e.type)?'button':'div');n.className='slide-element type-'+e.type;n.dataset.id=e.id;
  Object.assign(n.style,{left:e.x+'px',top:e.y+'px',width:e.w+'px',height:e.h+'px',fontSize:e.fontSize+'px',fontWeight:e.bold?'700':'400',color:e.color,background:e.type==='text'?'transparent':e.background,textAlign:e.align});
  if(e.type==='image'){const img=document.createElement('img');img.src=e.src;img.alt=e.text||'教材圖片';img.draggable=false;n.append(img);}
- else{const t=document.createElement('div');t.className='element-text';t.textContent=e.text;n.append(t);
+ else{const t=document.createElement('div');t.className='element-text';t.textContent=e.text;if(e.type==='flashcard')t.style.justifyContent=({left:'flex-start',center:'center',right:'flex-end'})[e.align];n.append(t);
  if(interactive&&['flashcard','reveal'].includes(e.type)){n.setAttribute('aria-label',e.type==='flashcard'?'Lật thẻ: '+e.text:'Hiện đáp án: '+e.text);n.onclick=()=>{const back=n.classList.toggle('flipped');t.textContent=back?e.backText:e.text;n.setAttribute('aria-pressed',String(back));};}}
  return n;
 }
