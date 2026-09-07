@@ -1,0 +1,13 @@
+name: Check course tools
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest discover -s scripts -p 'test_*.py'
+      - run: node scripts/test_editor_model.cjs
+      - run: node --check editor/editor.js
+      - run: node --check editor/model.js
