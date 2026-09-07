@@ -60,7 +60,7 @@ window.CourseUI = {
     $('workflow-status').textContent=generated?'已生成 · 內容核對 '+count+' / '+p.items.length+' · 手動微調為選用':'先讀教材 · 內容核對 '+count+' / '+p.items.length+' · 核對後生成 PPT';
     if(generated&&!editable)$('workflow-status').textContent='教材內容已修改 · 請核對並重新生成，再繼續版面微調';
     document.body.classList.toggle('before-generation',!editable);$('stage').inert=!editable;document.querySelector('.inspector').inert=!editable;$('source').disabled=true;$('source').title='請在教材資料庫設定來源與原頁碼';
-    for(const b of document.querySelectorAll('.toolbar [data-add],#add-image,#copy-slide,#delete-slide,#slide-up,#slide-down'))b.disabled=!editable||(b.id==='delete-slide'&&deck.slides.length===1)||(b.id==='slide-up'&&page===0)||(b.id==='slide-down'&&page===deck.slides.length-1);
+    for(const b of document.querySelectorAll('.toolbar [data-add],#add-image,#copy-slide,#delete-slide,#slide-up,#slide-down,#stacked-layout'))b.disabled=!editable||(b.id==='delete-slide'&&deck.slides.length===1)||(b.id==='slide-up'&&page===0)||(b.id==='slide-down'&&page===deck.slides.length-1);
     reviewStatus();
   },
   allowRelease() {
@@ -88,3 +88,5 @@ $('material-file').onchange=async ev=>{const f=ev.target.files[0];ev.target.valu
 $('download-package').onclick=()=>{document.activeElement?.blur();try{W.reconcile(deck);download(JSON.stringify(W.validatePackage(lesson()),null,2),filename('.lesson.json'),'application/json');}catch(e){notify(e.message);}};
 $('vocabulary-query').oninput=()=>{const q=$('vocabulary-query').value.trim(),results=$('vocabulary-results');results.replaceChildren();const rows=(lesson().vocabulary||[]).filter(v=>q&&v.word.includes(q)).slice(0,30);for(const v of rows){const p=document.createElement('p');p.textContent=[v.word,v.pinyin,v.meaning,v.source].filter(Boolean).join(' · ');results.append(p);}if(!rows.length)results.textContent=q?'教材包中的詞表沒有符合項目；請對照原教材核對超綱詞。':'';};
 document.querySelector('header').after($('workflow-bar'));
+
+$('stacked-layout').onclick=()=>{try{change(()=>W.applyStackedLayout(deck,slide().id));notify('已改為上下版面，可復原；請檢查長文字並按需要拆頁。');}catch(e){notify(e.message);}};

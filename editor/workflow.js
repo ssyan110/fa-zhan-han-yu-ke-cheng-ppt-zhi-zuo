@@ -133,6 +133,14 @@
     });
     captureLayout(d);d.workflow.projection=projection(d);
   }
+  function applyStackedLayout(d, slideId) {
+    const s=d.slides.find(s=>s.id===slideId),i=d.lessonPackage.items.find(i=>i.id===slideId);
+    if(!s||!i||!contentMatches(d))throw Error('請先從教材資料庫生成目前內容。');
+    const boxes={title:{x:27,y:25,w:906,h:80},instruction:{x:27,y:112,w:906,h:85},explanation:{x:27,y:112,w:906,h:85},body:{x:27,y:205,w:906,h:270}};
+    if(i.type==='vocabulary')Object.assign(boxes,{pinyin:{x:27,y:110,w:906,h:55},body:{x:27,y:175,w:906,h:135},examples:{x:27,y:320,w:906,h:165}});
+    for(const e of s.elements)if(boxes[e.role])Object.assign(e,boxes[e.role]);
+    reconcile(d);return d;
+  }
   function template(i) {
     const s={id:i.id,title:i.title,source:'',notes:i.notes,background:'#f8f7f3',elements:[]};
     for(const b of i.blocks){
@@ -182,6 +190,6 @@
   function studentView(d) {
     return {title:d.title,slides:d.slides.map(s=>({id:s.id,title:s.title,background:s.background,source:s.source,elements:s.elements.map(e=>pick(e,[...CONTENT,...LAYOUT]))}))};
   }
-  root.CourseWorkflow={newPackage,newCourse,newItem,source,validatePackage,itemFingerprint,isReviewed,issues,approve,migrate,reconcile,generate,releaseIssues,contentMatches,contentSnapshot,studentView,TYPES,EXERCISES};
+  root.CourseWorkflow={newPackage,newCourse,newItem,source,validatePackage,itemFingerprint,isReviewed,issues,approve,migrate,reconcile,generate,releaseIssues,contentMatches,contentSnapshot,studentView,applyStackedLayout,TYPES,EXERCISES};
   if(typeof module!=='undefined')module.exports=root.CourseWorkflow;
 })(globalThis);
