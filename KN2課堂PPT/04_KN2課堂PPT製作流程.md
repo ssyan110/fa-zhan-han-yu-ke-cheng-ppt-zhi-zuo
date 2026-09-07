@@ -2,9 +2,9 @@
 
 > 執行順序與共用規格以根目錄 `製作契約.md` 為準；本文件保留 KN2／KN4 各自的課程與頁型內容。
 
-本流程用於製作 KN2 HTML 課堂投影片。可選用本倉庫根目錄 `index.html` 的 editor，或沿用朋友本機的 `ai-teaching-material-system-main` 舊產生器；兩條路線的共同內容規則以根目錄 `製作契約.md` 為準。
+本流程用於製作 KN2 HTML 課堂投影片。新課或內容變更固定先讀課本，在 editor 教材資料庫建立／更新教材包與結構化 `items`，完成來源與教師內容核對後按 UI 生成，或以可選的 `scripts/build_course.cjs` 生成 `.slides.json`；生成後才可用本倉庫根目錄 `index.html` 的 editor 作可選手動微調。既有舊課仍可沿用朋友本機的 `ai-teaching-material-system-main` 舊產生器；兩條輸出路線的共同內容規則以根目錄 `製作契約.md` 為準。
 
-選用 editor 時，核可內容整理在 `.slides.json`；符合 `頁碼`、`檔名`、`投影片畫面文字` 欄位的 `HTML_PPT製作稿` 才能作為匯入文字草稿，匯入不會重建舊版面、圖片配置、互動或答案。選用舊產生器時，才需要 HTML_PPT 製作表、Manifest 與舊 presenter 檢查。
+`scripts/prepare_lesson_package.py` 可整理文字檔與有文字層的原生 PDF；掃描 PDF 沒有文字時需先取得 OCR，不能臆造內容。教材包寫入 `lessonPackage`、逐頁 `sources` 與 `items`；AI／教師整理不等於教師核可，程式結構檢查也不取代語意與程度判定。符合 `頁碼`、`檔名`、`投影片畫面文字` 欄位的 `HTML_PPT製作稿` 匯入 editor 只作保留全部列的待溯源文字草稿，不會重建舊版面、圖片配置、互動或答案；未完成來源與核對前不得正式放映或匯出。舊產生器路線才需要 HTML_PPT 製作表、Manifest 與舊 presenter 檢查。
 
 ## 六項通用排版規則
 
@@ -25,8 +25,8 @@
 2. 每課子資料夾建議放：
    - `{{lesson}}課堂PPT架構.md`
    - `{{lesson}}課堂PPT教師審核稿.md`
-   - `{{lesson}}HTML_PPT製作稿.md`
-   - `{{lesson}}.slides.json`（editor 路線）
+   - `{{lesson}}HTML_PPT製作稿.md`（舊產生器路線）
+   - `{{lesson}}.slides.json`（教材包生成後的 editor 路線）
    - `素材整理/`
    - `HTML輸出連結.md`
 
@@ -40,7 +40,9 @@
 | `KỸ NĂNG NÓI 2-CHƯƠNG TRÌNH CHI TIẾT.docx` | 確認課程範圍、頁碼與每課時數 |
 | `單字、語法資料庫/KỸ NĂNG NÓI 2-單字資料庫.md` | 核對生詞、拼音、詞性與釋義，做超綱交叉檢查 |
 | `課前預習、課中教學與回家作業規則.md` | 確認課堂、預習、作業分工 |
-| 根目錄 `index.html` 與 `editor/` | editor 路線的離線編輯、`.slides.json` 保存、放映與 HTML 匯出 |
+| `scripts/prepare_lesson_package.py` | 從文字檔／原生 PDF 整理教材包；掃描 PDF 無文字時標記需 OCR，不臆造內容 |
+| `scripts/build_course.cjs` | 從已核對的教材包與 `items` 生成可編輯 `.slides.json` |
+| 根目錄 `index.html` 與 `editor/` | 生成後 editor 路線的離線微調、`.slides.json` 保存、放映與 HTML 匯出 |
 | `ai-teaching-material-system-main` | 舊產生器路線才用來確認 HTML PPT 格式、視覺風格、頁型版式、互動形式與工具欄 |
 | `05_KN2圖片生成與嵌入流程.md` | 需要 ChatGPT 生圖、裁切、嵌入圖片時使用 |
 
@@ -269,7 +271,7 @@ KN2 原則：
 
 ## 10. 製作 HTML_PPT 製作稿（僅舊產生器路線）
 
-舊產生器路線在教師審核稿通過後，建立 `{{lesson}}HTML_PPT製作稿.md`，再製作 HTML。editor 路線不以本稿作為版面重建來源；若要匯入，檔案必須含 `頁碼`、`檔名`、`投影片畫面文字` 欄，匯入後只整理文字草稿，並把結果下載成 `.slides.json`。
+舊產生器路線在教師審核稿通過後，建立 `{{lesson}}HTML_PPT製作稿.md`，再製作 HTML。新課或內容變更的 editor 路線不以本稿作為正式來源，而是先建立並核對教材包的 `lessonPackage`、逐頁 `sources` 與 `items`，再按 UI 生成 `.slides.json`，或使用可選的 `build_course.cjs` 批次生成。若要匯入舊稿，檔案必須含 `頁碼`、`檔名`、`投影片畫面文字` 欄，匯入後只建立保留全部列的待溯源文字草稿，不能繞過來源、答案、指令或核對。
 
 製作稿用途：
 
@@ -286,11 +288,11 @@ KN2 原則：
 
 ## 11. 製作 HTML 投影片（依使用路線）
 
-### editor 路線
+### editor 路線（教材包生成後）
 
-1. 開啟根目錄 `index.html`，建立或開啟本課 `.slides.json`；需要從製作稿開始時，只匯入含 `頁碼`、`檔名`、`投影片畫面文字` 欄位的 Markdown 文字草稿。
-2. 逐頁整理已核可的文字、圖片、頁型、正反面與答案，確認教師備註不出現在學生畫面；不要把舊 HTML、Manifest 或歷史 QA 勾選當成已重建結果。
-3. 下載 `.slides.json` 作為可攜備份，重新開啟確認文字、圖片、位置、順序與正反面，再匯出獨立 HTML。列印 PDF 時只代表各頁正面。
+1. 在 editor 教材資料庫讀取／貼上教材或匯入 `.lesson.json`，建立 `lessonPackage`、逐頁 `sources` 與 `items`；需要批次抽取時才以 `prepare_lesson_package.py` 處理。掃描 PDF 無文字時先取得 OCR，不能臆造。教師核對來源、語意、程度、題型、答案與指令後，按 UI 生成，或以可選的 `build_course.cjs` 生成，再在根目錄 `index.html` 開啟本課 `.slides.json`。
+2. 檢查生成內容與 `items` 對應，確認教師備註不出現在學生畫面；不要把舊 HTML、Manifest、歷史 QA 勾選或自動生成結果當成核可。內容修改必須回寫 `items`／來源並使受影響核對失效，位置、尺寸與樣式修改只寫入 `layoutOverrides`。
+3. 下載 `.slides.json` 作為可攜備份，重新開啟確認 `lessonPackage`、`sources`、`items`、文字、圖片、位置、`layoutOverrides`、順序與正反面，再於核對通過後匯出獨立 HTML。列印 PDF 時只代表各頁正面；未核對的草稿仍可下載，但不得正式放映或匯出。
 
 ### 舊產生器路線
 
@@ -327,9 +329,10 @@ ai-teaching-material-system-main/output/kn2/lesson-{{lesson_number}}/
 
 ### editor 路線
 
-- `.slides.json` 已下載並可重新開啟；文字、圖片、位置、頁面順序與教師備註均保留。
-- 放映中實際檢查翻牌／答案的正面與背面，確認匯入草稿的答案未誤放在學生正面。
-- 匯出 HTML 可離線開啟，前後頁及需要的卡片互動已測試；PDF 若列印只含各頁正面。
+- `lessonPackage`、逐頁 `sources` 與每個 `item` 的穩定 ID、題型、目標、來源、正面、答案、必要指令／標注與核對狀態可追溯；所有新增題目均通過來源、答案、指令與核對檢查。
+- `.slides.json` 已下載並可重新開啟；文字、圖片、位置、頁面順序、教師備註與 `layoutOverrides` 均保留。內容變更已回寫 `items` 並重核對，版面變更在重建後仍保留。
+- 放映中實際檢查翻牌／答案的正面與背面，確認草稿答案未誤放在學生正面。
+- 匯出 HTML 可離線開啟，前後頁及需要的卡片互動已測試；PDF 若列印只含各頁正面。未完成核對不得標記正式交付。
 - 交付 `.slides.json` 與匯出的 HTML，並記錄未測的裝置、瀏覽器或課堂驗證。
 
 ### 舊產生器路線
